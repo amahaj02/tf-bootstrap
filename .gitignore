@@ -1,0 +1,18 @@
+# Terraform working files and state
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+
+# Secrets / local inputs
+*.tfvars
+*.tfvars.json
+!terraform/env/dev.tfvars
+.env
+.env.*
+*.pem
+*.key
+
+# Keep dependency selections reproducible
+!.terraform.lock.hcl
