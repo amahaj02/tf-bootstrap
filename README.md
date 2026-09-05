@@ -92,8 +92,8 @@ the GitHub OIDC provider.
 ## Role model
 
 `terraform/env/dev.tfvars` defines an `iam_roles` map. Each map key is the IAM
-role name and each entry defines its trust relationship, boundary, tags, and
-AWS-managed policy attachments.
+role name and each entry defines its trust relationship, boundary, tags,
+AWS-managed policy attachments, and optional inline policy statements.
 
 ```hcl
 iam_roles = {
@@ -111,6 +111,21 @@ iam_roles = {
 }
 ```
 
+Use `inline_policy_statements` for permissions unique to one role. Each
+statement defines its actions and resources directly on that role; no separate
+policy attachment is created. Reusable policies can instead be created outside
+this configuration and referenced through `managed_policy_arns`.
+
+```hcl
+inline_policy_statements = [
+  {
+    sid       = "AccessAuthTable"
+    actions   = ["dynamodb:GetItem", "dynamodb:PutItem"]
+    resources = ["arn:aws:dynamodb:ca-central-1:344138923336:table/dev-workspace-auth"]
+  }
+]
+```
+
 ## GitHub Actions
 
 The `Terraform Plan and Apply` workflow runs for relevant pushes to `main` and
@@ -124,3 +139,8 @@ OIDC_ROLE_ARN = arn:aws:iam::344138923336:role/TerraformBootstrapRole
 The workflow verifies the assumed AWS identity, initializes the S3 backend,
 generates `tfplan`, uploads it as an artifact, and applies the downloaded plan
 in the second job.
+
+The apply job references the `main` GitHub Environment. To require manual
+approval before it runs, configure a required reviewer in `Settings >
+Environments > main`. After planning succeeds, approve the waiting deployment
+from the Actions run with `Review deployments` and `Approve and deploy`.
