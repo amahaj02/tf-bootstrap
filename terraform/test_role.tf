@@ -43,3 +43,39 @@ resource "aws_iam_role_policy_attachment" "managed" {
   role       = aws_iam_role.this[each.value.role_name].name
   policy_arn = each.value.policy_arn
 }
+
+data "aws_iam_policy_document" "inline" {
+  for_each = {
+    for role_name, role in var.iam_roles : role_name => role
+    if length(role.inline_policy_statements) > 0
+  }
+
+  dynamic "statement" {
+    for_each = each.value.inline_policy_statements
+
+    content {
+      sid       = statement.value.sid
+      effect    = statement.value.effect
+      actions   = statement.value.actions
+      resources = statement.value.resources
+
+      dynamic "condition" {
+        for_each = statement.value.conditions
+
+        content {
+          test     = condition.value.test
+          variable = condition.value.variable
+          values   = condition.value.values
+        }
+      }
+    }
+  }
+}
+
+resource "aws_iam_role_policy" "inline" {
+  for_each = data.aws_iam_policy_document.inline
+
+  name   = "${each.key}-inline"
+  role   = aws_iam_role.this[each.key].name
+  policy = each.value.json
+}
