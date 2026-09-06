@@ -45,6 +45,7 @@ iam_roles = {
       {
         sid = "UseAuthTable"
         actions = [
+          "dynamodb:DescribeTimeToLive",
           "dynamodb:GetItem",
           "dynamodb:PutItem",
           "dynamodb:UpdateItem",
