@@ -62,7 +62,8 @@ iam_roles = {
     github_oidc = {
       provider_arn = "arn:aws:iam::344138923336:oidc-provider/token.actions.githubusercontent.com"
       subjects = [
-        "repo:amahaj02@122768341/dev-workspace-mcp@1358724843:environment:main"
+        "repo:amahaj02@122768341/dev-workspace-mcp@1358724843:environment:main",
+        "repo:amahaj02@122768341/dev-workspace-mcp@1358724843:ref:refs/heads/main",
       ]
     }
 
