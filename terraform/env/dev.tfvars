@@ -31,28 +31,24 @@ iam_roles = {
     managed_policy_arns = []
     inline_policy_statements = [
       {
-        sid = "CreateAndConfigureAuthTable"
+        sid = "UseAuthTable"
         actions = [
-          "dynamodb:CreateTable",
-          "dynamodb:DescribeTable",
-          "dynamodb:TagResource",
-          "dynamodb:UpdateTimeToLive",
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem"
         ]
         resources = [
           "arn:aws:dynamodb:ca-central-1:344138923336:table/dev-workspace-auth"
         ]
       },
       {
-        sid = "UseAuthTable"
+        sid = "WriteLogsToCW"
         actions = [
-          "dynamodb:DescribeTimeToLive",
-          "dynamodb:GetItem",
-          "dynamodb:PutItem",
-          "dynamodb:UpdateItem",
-          "dynamodb:DeleteItem"
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
         ]
         resources = [
-          "arn:aws:dynamodb:ca-central-1:344138923336:table/dev-workspace-auth"
+          "arn:aws:logs:ca-central-1:344138923336:log-group:/aws/lambda/dev-workspace-mcp:*"
         ]
       }
     ]
@@ -61,5 +57,100 @@ iam_roles = {
       ManagedBy = "Terraform"
       Project   = "dev-workspace-mcp-project"
     }
+  },
+  DevWorkspaceMCPProjectTFDeploymentRole = {
+    github_oidc = {
+      provider_arn = "arn:aws:iam::344138923336:oidc-provider/token.actions.githubusercontent.com"
+      subjects = [
+        "repo:amahaj02@122768341/dev-workspace-mcp@1358724843:environment:main"
+      ]
+    }
+
+    managed_policy_arns = []
+
+    inline_policy_statements = [
+      {
+        sid = "ManageAuthTable"
+        actions = [
+          "dynamodb:CreateTable",
+          "dynamodb:DeleteTable",
+          "dynamodb:DescribeTable",
+          "dynamodb:DescribeTimeToLive",
+          "dynamodb:ListTagsOfResource",
+          "dynamodb:TagResource",
+          "dynamodb:UntagResource",
+          "dynamodb:UpdateTable",
+          "dynamodb:UpdateTimeToLive",
+        ]
+        resources = [
+          "arn:aws:dynamodb:ca-central-1:344138923336:table/dev-workspace-auth"
+        ]
+      },
+      {
+        sid = "ManageAppLambda"
+        actions = [
+          "lambda:AddPermission",
+          "lambda:CreateFunction",
+          "lambda:CreateFunctionUrlConfig",
+          "lambda:DeleteFunction",
+          "lambda:DeleteFunctionUrlConfig",
+          "lambda:GetFunction",
+          "lambda:GetFunctionUrlConfig",
+          "lambda:GetPolicy",
+          "lambda:ListTags",
+          "lambda:RemovePermission",
+          "lambda:TagResource",
+          "lambda:UntagResource",
+          "lambda:UpdateFunctionCode",
+          "lambda:UpdateFunctionConfiguration",
+          "lambda:UpdateFunctionUrlConfig",
+        ]
+        resources = [
+          "arn:aws:lambda:ca-central-1:344138923336:function:dev-workspace-mcp"
+        ]
+      },
+      {
+        sid     = "PassAppExecutionRole"
+        actions = ["iam:PassRole"]
+        resources = [
+          "arn:aws:iam::344138923336:role/projects/DevWorkspaceMCPProjectRole"
+        ]
+        conditions = [
+          {
+            test     = "StringEquals"
+            variable = "iam:PassedToService"
+            values   = ["lambda.amazonaws.com"]
+          }
+        ]
+      },
+      {
+        sid = "CreateAndDiscoverAppLogGroup"
+        actions = [
+          "logs:CreateLogGroup",
+          "logs:DescribeLogGroups",
+        ]
+        resources = ["*"]
+      },
+      {
+        sid = "ManageAppLogGroup"
+        actions = [
+          "logs:DeleteLogGroup",
+          "logs:ListTagsForResource",
+          "logs:PutRetentionPolicy",
+          "logs:TagResource",
+          "logs:UntagResource",
+        ]
+        resources = [
+          "arn:aws:logs:ca-central-1:344138923336:log-group:/aws/lambda/dev-workspace-mcp:*"
+        ]
+      },
+    ]
+    permissions_boundary_arn = "arn:aws:iam::344138923336:policy/ProjectRoleBoundary"
+
+    tags = {
+      ManagedBy = "Terraform"
+      Project   = "dev-workspace-mcp-project"
+    }
+
   }
 }

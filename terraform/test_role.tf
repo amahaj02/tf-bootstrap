@@ -1,15 +1,45 @@
 data "aws_iam_policy_document" "role_trust" {
   for_each = var.iam_roles
 
-  statement {
-    effect = "Allow"
+  dynamic "statement" {
+    for_each = length(each.value.trusted_services) > 0 ? [each.value.trusted_services] : []
+    content {
+      effect = "Allow"
 
-    principals {
-      type        = "Service"
-      identifiers = each.value.trusted_services
+      principals {
+        type        = "Service"
+        identifiers = statement.value
+      }
+
+      actions = ["sts:AssumeRole"]
     }
+  }
 
-    actions = ["sts:AssumeRole"]
+  dynamic "statement" {
+    for_each = each.value.github_oidc == null ? [] : [each.value.github_oidc]
+
+    content {
+      effect = "Allow"
+
+      principals {
+        type        = "Federated"
+        identifiers = [statement.value.provider_arn]
+      }
+
+      actions = ["sts:AssumeRoleWithWebIdentity"]
+
+      condition {
+        test     = "StringEquals"
+        variable = "token.actions.githubusercontent.com:aud"
+        values   = ["sts.amazonaws.com"]
+      }
+
+      condition {
+        test     = "StringEquals"
+        variable = "token.actions.githubusercontent.com:sub"
+        values   = statement.value.subjects
+      }
+    }
   }
 }
 

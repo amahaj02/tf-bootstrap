@@ -2,7 +2,10 @@ variable "iam_roles" {
   description = "IAM roles and their individual trust and permissions policies"
 
   type = map(object({
-    trusted_services    = set(string)
+    trusted_services = optional(set(string), [])
+    github_oidc = optional(object({
+      provider_arn = string
+    subjects = set(string) }), null)
     managed_policy_arns = set(string)
     inline_policy_statements = optional(list(object({
       sid       = optional(string)
