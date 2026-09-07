@@ -70,6 +70,53 @@ iam_roles = {
 
     inline_policy_statements = [
       {
+        sid = "ManageProjectTerraformState"
+
+        actions = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+
+        resources = [
+          "arn:aws:s3:::terraform-state-344138923336-ca-central-1-an/dev-workspace-mcp/terraform.tfstate",
+          "arn:aws:s3:::terraform-state-344138923336-ca-central-1-an/dev-workspace-mcp/terraform.tfstate.tflock",
+        ]
+      },
+      {
+        sid = "ListProjectTerraformState"
+
+        actions = [
+          "s3:ListBucket"
+        ]
+
+        resources = [
+          "arn:aws:s3:::terraform-state-344138923336-ca-central-1-an"
+        ]
+
+        conditions = [
+          {
+            test     = "StringLike"
+            variable = "s3:prefix"
+            values = [
+              "dev-workspace-mcp/terraform.tfstate",
+              "dev-workspace-mcp/terraform.tfstate.tflock",
+            ]
+          }
+        ]
+      },
+      {
+        sid = "DeleteProjectTerraformLock"
+
+        actions = [
+          "s3:DeleteObject",
+        ]
+
+        resources = [
+          "arn:aws:s3:::terraform-state-344138923336-ca-central-1-an/dev-workspace-mcp/terraform.tfstate.tflock",
+        ]
+      },
+
+      {
         sid = "ManageAuthTable"
         actions = [
           "dynamodb:CreateTable",
