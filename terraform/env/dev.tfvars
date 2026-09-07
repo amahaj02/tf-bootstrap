@@ -129,6 +129,7 @@ iam_roles = {
           "dynamodb:UntagResource",
           "dynamodb:UpdateTable",
           "dynamodb:UpdateTimeToLive",
+          "dynamodb:DescribeContinuousBackups"
         ]
         resources = [
           "arn:aws:dynamodb:ca-central-1:344138923336:table/dev-workspace-auth"
